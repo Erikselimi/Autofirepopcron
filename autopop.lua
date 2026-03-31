@@ -1,6 +1,4 @@
--- AutoPop Harness with Ring Hook
--- Safe for your own minigame testing
-
+-- AutoPop Harness that waits for ring
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -13,25 +11,34 @@ local networking = ReplicatedStorage
 
 local actionRemote = networking:WaitForChild("RE/Minigame/MinigameGameAction")
 
--- State
 local state = {
     enabled = true,
-    targetScale = 0.35, -- sweet spot
+    targetScale = 0.35,
     tolerance = 0.01,
-    lastScale = 0,
     lastFired = 0,
 }
 
--- Ring reference
 local ringFrame = nil
 
--- Hook function: game calls this when a new ring is created
-_G.AutoPopHarness = {
-    setRing = function(frame)
-        ringFrame = frame
-        print("[AutoPop] Hooked new ring:", frame)
+-- Watch PlayerGui for the ring
+task.spawn(function()
+    while true do
+        -- look for the SoloPopcornBurstGui and its CircleHolder
+        local gui = player:WaitForChild("PlayerGui"):FindFirstChild("SoloPopcornBurstGui")
+        if gui then
+            local holder = gui:FindFirstChild("CircleHolder")
+            if holder then
+                -- look for Frame_3 (the shrinking ring)
+                local candidate = holder:FindFirstChild("Frame_3", true)
+                if candidate and candidate:IsA("Frame") then
+                    ringFrame = candidate
+                    print("[AutoPop] Found ring:", ringFrame)
+                end
+            end
+        end
+        task.wait(0.2)
     end
-}
+end)
 
 -- Fire AttemptPop with correct server time
 local function fireAttempt()
