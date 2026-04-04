@@ -1,4 +1,4 @@
--- God Menu Auto-Collect GUI
+-- God Menu Auto-Collect GUI with CarryVisuals + Set Teleport Point
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
@@ -10,8 +10,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 250, 0, 400)
-frame.Position = UDim2.new(0.7, -125, 0.5, -200)
+frame.Size = UDim2.new(0, 250, 0, 450)
+frame.Position = UDim2.new(0.7, -125, 0.5, -225)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -25,7 +25,7 @@ uiCorner.Parent = frame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
-title.Text = "God Menu - Zone Picker"
+title.Text = "God Menu"
 title.TextColor3 = Color3.fromRGB(255,215,0)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 20
@@ -42,9 +42,9 @@ status.TextSize = 18
 status.Parent = frame
 
 local scrolling = Instance.new("ScrollingFrame")
-scrolling.Size = UDim2.new(1,0,1,-70)
-scrolling.Position = UDim2.new(0,0,0,70)
-scrolling.CanvasSize = UDim2.new(0,0,0,600)
+scrolling.Size = UDim2.new(1,0,1,-80)
+scrolling.Position = UDim2.new(0,0,0,80)
+scrolling.CanvasSize = UDim2.new(0,0,0,700)
 scrolling.ScrollBarThickness = 6
 scrolling.BackgroundTransparency = 1
 scrolling.Parent = frame
@@ -65,6 +65,9 @@ local zones = {
     {"Celestial", Color3.fromRGB(200,200,50)},
     {"Cosmic", Color3.fromRGB(50,200,200)},
 }
+
+-- Saved teleport point
+local savedCFrame = nil
 
 -- Helper: wait until CarryVisuals gets a child
 local function waitForCarryVisual()
@@ -115,7 +118,43 @@ local function collectFromZone(zoneName)
     status.Text = "Finished "..zoneName
 end
 
--- Add buttons
+-- Add Set Teleport Point button
+local setButton = Instance.new("TextButton")
+setButton.Size = UDim2.new(1,-10,0,40)
+setButton.BackgroundColor3 = Color3.fromRGB(100,200,100)
+setButton.Text = "Set Teleport Point"
+setButton.TextColor3 = Color3.new(0,0,0)
+setButton.Font = Enum.Font.SourceSansBold
+setButton.TextSize = 18
+setButton.Parent = scrolling
+Instance.new("UICorner", setButton).CornerRadius = UDim.new(0,8)
+
+setButton.MouseButton1Click:Connect(function()
+    savedCFrame = hrp.CFrame
+    status.Text = "Teleport point saved!"
+end)
+
+-- Add Teleport to Saved Point button
+local tpButton = Instance.new("TextButton")
+tpButton.Size = UDim2.new(1,-10,0,40)
+tpButton.BackgroundColor3 = Color3.fromRGB(50,150,250)
+tpButton.Text = "Teleport to Saved Point"
+tpButton.TextColor3 = Color3.new(0,0,0)
+tpButton.Font = Enum.Font.SourceSansBold
+tpButton.TextSize = 18
+tpButton.Parent = scrolling
+Instance.new("UICorner", tpButton).CornerRadius = UDim.new(0,8)
+
+tpButton.MouseButton1Click:Connect(function()
+    if savedCFrame then
+        hrp.CFrame = savedCFrame + Vector3.new(0,5,0)
+        status.Text = "Teleported to saved point!"
+    else
+        status.Text = "No point set yet!"
+    end
+end)
+
+-- Add zone buttons
 for _, data in ipairs(zones) do
     local name, color = data[1], data[2]
     local button = Instance.new("TextButton")
@@ -127,9 +166,7 @@ for _, data in ipairs(zones) do
     button.TextSize = 18
     button.Parent = scrolling
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,8)
-    corner.Parent = button
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0,8)
 
     button.MouseButton1Click:Connect(function()
         collectFromZone(name)
