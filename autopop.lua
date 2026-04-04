@@ -1,4 +1,4 @@
--- God Menu Auto-Collect GUI with CarryVisuals + Set Teleport Point
+-- God Menu Auto-Collect GUI with CarryVisuals + Set Teleport Point (fixed loop)
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
@@ -18,9 +18,7 @@ frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 
-local uiCorner = Instance.new("UICorner")
-uiCorner.CornerRadius = UDim.new(0,12)
-uiCorner.Parent = frame
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,40)
@@ -69,7 +67,7 @@ local zones = {
 -- Saved teleport point
 local savedCFrame = nil
 
--- Helper: wait until CarryVisuals gets a child
+-- Helper: wait until CarryVisuals gets a child (fresh connection each time)
 local function waitForCarryVisual()
     local playerFolder = workspace:FindFirstChild(player.Name)
     if not playerFolder then return false end
@@ -85,6 +83,7 @@ local function waitForCarryVisual()
         conn:Disconnect()
     end)
 
+    -- Block until something is added, then return
     while not picked do task.wait(0.1) end
     return true
 end
@@ -112,7 +111,11 @@ local function collectFromZone(zoneName)
         local target = spawnedItems[i]
         status.Text = "At "..zoneName.." item "..i.."/"..math.min(6,#spawnedItems)
         hrp.CFrame = target.CFrame + Vector3.new(0,5,0)
+
+        -- Fresh CarryVisuals listener for each item
         waitForCarryVisual()
+
+        -- Delay before next teleport
         task.wait(3)
     end
     status.Text = "Finished "..zoneName
