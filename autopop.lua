@@ -66,27 +66,27 @@ local zones = {
 
 -- Saved teleport point
 local savedCFrame = nil
-
--- Helper: wait until CarryVisuals gets a child (fresh connection each time)
+-- Helper: wait until CarryVisuals gets a new child
 local function waitForCarryVisual()
     local playerFolder = workspace:FindFirstChild(player.Name)
     if not playerFolder then return false end
     local carryVisuals = playerFolder:FindFirstChild("CarryVisuals")
     if not carryVisuals then return false end
 
+    local initialCount = #carryVisuals:GetChildren()
     status.Text = "Waiting for pickup..."
-    local picked = false
-    local conn
-    conn = carryVisuals.ChildAdded:Connect(function(child)
-        status.Text = "Picked up: "..child.Name
-        picked = true
-        conn:Disconnect()
-    end)
 
-    -- Block until something is added, then return
-    while not picked do task.wait(0.1) end
+    -- Wait until the child count increases (new item added)
+    repeat
+        task.wait(0.1)
+    until #carryVisuals:GetChildren() > initialCount
+
+    -- Grab the newest child
+    local newChild = carryVisuals:GetChildren()[#carryVisuals:GetChildren()]
+    status.Text = "Picked up: "..newChild.Name
     return true
 end
+
 
 -- Collect from one zone
 local function collectFromZone(zoneName)
